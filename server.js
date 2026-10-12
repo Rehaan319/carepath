@@ -35,11 +35,11 @@ const port = Number(process.env.PORT) || 3000;
 const apiKey = (process.env.OPENAI_API_KEY || '').trim();
 const isGroq = apiKey.startsWith('gsk_');
 const defaultBaseUrl = isGroq ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
-const defaultModel = isGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
+const defaultModel = isGroq ? 'openai/gpt-oss-120b' : 'gpt-4o-mini';
 const baseUrl = (process.env.OPENAI_BASE_URL || defaultBaseUrl).replace(/\/+$/, '');
 let model = process.env.OPENAI_MODEL || defaultModel;
-if (isGroq && (model.startsWith('gpt-') || model.includes('70b'))) {
-  model = 'llama-3.1-8b-instant';
+if (isGroq && (model === 'gpt-4o-mini' || model.startsWith('gpt-4') || model.includes('70b') || model.includes('llama'))) {
+  model = 'openai/gpt-oss-120b';
 }
 const accountFile = path.join(root, '.carepath-data', 'accounts.json');
 const rateLimits = new Map();
@@ -291,7 +291,7 @@ async function handleChat(request, response) {
   const userMessage = profileDetails ? `${body.message.trim()}\n\nOptional context the user chose to share:\n${profileDetails}` : body.message.trim();
 
   const candidateModels = isGroq
-    ? Array.from(new Set([model, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-8b-8192', 'mixtral-8x7b-32768']))
+    ? Array.from(new Set([model, 'openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b', 'llama-3.1-8b-instant']))
     : [model];
 
   let lastError = 'The AI service could not respond. Local guidance is available.';
