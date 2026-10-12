@@ -290,38 +290,58 @@ async function handleChat(request, response) {
   ].filter(Boolean).join('\n');
   const userMessage = profileDetails ? `${body.message.trim()}\n\nOptional context the user chose to share:\n${profileDetails}` : body.message.trim();
 
-  const upstream = await fetch(`${baseUrl}/chat/completions`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    signal: AbortSignal.timeout(25_000),
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are Carepath, a cautious health-information assistant. Provide general educational information only; do not diagnose, claim certainty, or tell users to start, stop, or change prescription medicines. Ask concise follow-up questions when important context is missing. Clearly recommend a qualified clinician for personalized care. For possible emergencies, tell the user to contact local emergency services now. Be empathetic, concise, and transparent about uncertainty.'
-        },
-        ...history,
-        { role: 'user', content: userMessage }
-      ],
-      temperature: 0.3,
-      max_tokens: 700
-    })
-  });
+  const candidateModels = isGroq
+    ? Array.from(new Set([model, 'llama-3.1-8b-instant', 'llama-3.3-70b-versatile', 'llama3-8b-8192', 'mixtral-8x7b-32768']))
+    : [model];
 
-  if (!upstream.ok) {
-    let errorDetail = '';
+  let lastError = 'The AI service could not respond. Local guidance is available.';
+  let reply = null;
+
+  for (const candidate of candidateModels) {
     try {
-      const errJson = await upstream.json();
-      errorDetail = errJson?.error?.message || '';
-    } catch {}
-    const msg = errorDetail ? `AI service error: ${errorDetail}` : 'The AI service could not respond. Local guidance is available.';
-    return sendJson(response, 502, { error: msg });
+      const upstream = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+        signal: AbortSignal.timeout(25_000),
+        body: JSON.stringify({
+          model: candidate,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are Carepath, a cautious health-information assistant. Provide general educational information only; do not diagnose, claim certainty, or tell users to start, stop, or change prescription medicines. Ask concise follow-up questions when important context is missing. Clearly recommend a qualified clinician for personalized care. For possible emergencies, tell the user to contact local emergency services now. Be empathetic, concise, and transparent about uncertainty.'
+            },
+            ...history,
+            { role: 'user', content: userMessage }
+          ],
+          temperature: 0.3,
+          max_tokens: 700
+        })
+      });
+
+      if (upstream.ok) {
+        const result = await upstream.json();
+        reply = result.choices?.[0]?.message?.content;
+        if (typeof reply === 'string' && reply.trim()) {
+          model = candidate;
+          break;
+        }
+      } else {
+        const errJson = await upstream.json().catch(() => ({}));
+        lastError = errJson?.error?.message || `Status ${upstream.status}`;
+        const errLower = lastError.toLowerCase();
+        if (!errLower.includes('model') && !errLower.includes('access') && !errLower.includes('exist')) {
+          break;
+        }
+      }
+    } catch (err) {
+      lastError = err.message || 'AI request timed out';
+    }
   }
-  const result = await upstream.json();
-  const reply = result.choices?.[0]?.message?.content;
-  if (typeof reply !== 'string' || !reply.trim()) return sendJson(response, 502, { error: 'The AI service returned an empty response.' });
-  sendJson(response, 200, { reply: reply.trim() });
+
+  if (typeof reply !== 'string' || !reply.trim()) {
+    return sendJson(response, 502, { error: `AI service error: ${lastError}` });
+  }
+  return sendJson(response, 200, { reply: reply.trim() });
 }
 
 const server = http.createServer(async (request, response) => {
