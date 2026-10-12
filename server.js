@@ -32,9 +32,12 @@ function loadEnv() {
 loadEnv();
 
 const port = Number(process.env.PORT) || 3000;
-const apiKey = process.env.OPENAI_API_KEY;
-const model = process.env.OPENAI_MODEL || 'gpt-4o-mini';
-const baseUrl = (process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/+$/, '');
+const apiKey = (process.env.OPENAI_API_KEY || '').trim();
+const isGroq = apiKey.startsWith('gsk_');
+const defaultBaseUrl = isGroq ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
+const defaultModel = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+const baseUrl = (process.env.OPENAI_BASE_URL || defaultBaseUrl).replace(/\/+$/, '');
+const model = process.env.OPENAI_MODEL || defaultModel;
 const accountFile = path.join(root, '.carepath-data', 'accounts.json');
 const rateLimits = new Map();
 const authLimits = new Map();
@@ -324,10 +327,11 @@ const server = http.createServer(async (request, response) => {
 
   const pathname = new URL(request.url, 'http://localhost').pathname;
   if (pathname === '/api/status' && request.method === 'GET') {
+    const providerName = apiKey ? (baseUrl.includes('groq.com') ? 'Groq' : (baseUrl.includes('openai.com') ? 'OpenAI' : 'Compatible')) : null;
     return sendJson(response, 200, {
       configured: Boolean(apiKey),
       model: apiKey ? model : null,
-      provider: apiKey ? (baseUrl.includes('openai.com') ? 'OpenAI' : 'OpenAI-Compatible') : null
+      provider: providerName
     });
   }
   if (pathname.startsWith('/api/auth/')) {
