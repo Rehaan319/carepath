@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7faf8">
+  <meta name="description" content="Carepath is a personal health information assistant for thoughtful next steps.">
+  <title>Carepath | Your health, thoughtfully guided</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Main navigation">
+      <a class="brand" href="#" aria-label="Carepath home">
+        <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 5v22M5 16h22"/><path d="M8.2 8.2c4.3-4.3 11.3-4.3 15.6 0s4.3 11.3 0 15.6-11.3 4.3-15.6 0-4.3-11.3 0-15.6Z"/></svg></span>
+        <span>carepath<span class="brand-period">.</span></span>
+      </a>
+
+      <button class="new-chat" id="new-chat" type="button"><span aria-hidden="true">＋</span> New conversation</button>
+
+      <div class="side-label">YOUR SPACE</div>
+      <button class="nav-item active" type="button"><span class="nav-icon" aria-hidden="true">◷</span> Health assistant</button>
+      <button class="nav-item" id="open-profile" type="button"><span class="nav-icon" aria-hidden="true">♙</span> Personal health profile</button>
+
+      <div class="side-label recent-label">CHAT HISTORY</div>
+      <div class="chat-history" id="chat-history" aria-label="Saved conversations"></div>
+
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><span class="lock-icon" aria-hidden="true">⌑</span><span><strong>Your privacy matters</strong><small>Stored here; AI sharing is optional.</small></span></div>
+        <div class="sidebar-foot">Not a substitute for professional medical care.</div>
+      </div>
+    </aside>
+
+    <main class="main-panel">
+      <header class="topbar">
+        <div class="topbar-context"><span class="status-dot"></span><span>PERSONAL HEALTH ASSISTANT</span></div>
+        <button class="auth-button" id="auth-button" type="button">Sign up</button>
+        <button class="profile-button" id="profile-button" type="button" aria-label="Edit your personal health profile" title="Personal health profile"><span class="avatar">Y</span><span class="profile-button-text">Your profile</span><span class="chevron">⌄</span></button>
+      </header>
+
+      <section class="conversation" id="conversation" aria-label="Conversation" aria-live="polite">
+        <div class="welcome" id="welcome">
+          <div class="welcome-kicker"><span class="sparkle" aria-hidden="true">✳</span> A calmer place to start</div>
+          <h1>Health questions,<br><span>meet thoughtful answers.</span></h1>
+          <p class="welcome-copy">Tell me what's on your mind. I'll help you explore trusted general information and think through a sensible next step.</p>
+          <div class="suggestion-heading">A few places we could begin</div>
+          <div class="suggestions" id="suggestions">
+            <button class="suggestion" type="button" data-prompt="I've had a headache today. What should I consider?"><span class="suggestion-icon headache" aria-hidden="true">◉</span><span><strong>Headache</strong><small>Common causes &amp; self-care</small></span><span class="suggestion-arrow" aria-hidden="true">↗</span></button>
+            <button class="suggestion" type="button" data-prompt="I've been having trouble sleeping lately."><span class="suggestion-icon sleep" aria-hidden="true">☾</span><span><strong>Sleep</strong><small>Build a better routine</small></span><span class="suggestion-arrow" aria-hidden="true">↗</span></button>
+            <button class="suggestion" type="button" data-prompt="I have seasonal allergies. What can help?"><span class="suggestion-icon allergy" aria-hidden="true">✿</span><span><strong>Allergies</strong><small>Triggers &amp; relief options</small></span><span class="suggestion-arrow" aria-hidden="true">↗</span></button>
+            <button class="suggestion" type="button" data-prompt="I've had a cough. When should I get medical advice?"><span class="suggestion-icon cough" aria-hidden="true">≋</span><span><strong>Cough</strong><small>What to watch for</small></span><span class="suggestion-arrow" aria-hidden="true">↗</span></button>
+          </div>
+          <div class="welcome-disclaimer"><span aria-hidden="true">ⓘ</span> I can share general health information, not diagnose or replace a clinician.</div>
+        </div>
+        <div class="messages" id="messages"></div>
+        <div class="typing-indicator" id="typing-indicator" aria-label="Thinking" hidden><span></span><span></span><span></span></div>
+      </section>
+
+      <div class="composer-wrap">
+        <form class="composer" id="chat-form">
+          <label class="sr-only" for="message-input">Your health question</label>
+          <textarea id="message-input" rows="1" maxlength="1200" placeholder="Share what's on your mind…" required></textarea>
+          <div class="composer-bottom"><span class="composer-hint"><span aria-hidden="true">⌁</span> General health information, made personal</span><button class="send-button" type="submit" aria-label="Send message" title="Send message"><span aria-hidden="true">↑</span></button></div>
+        </form>
+        <div class="composer-disclaimer">Carepath is not for emergencies. If you may be experiencing a medical emergency, call your local emergency number now.</div>
+      </div>
+    </main>
+  </div>
+
+  <dialog class="profile-dialog" id="profile-dialog" aria-labelledby="profile-title">
+    <form method="dialog" class="dialog-close-form"><button class="dialog-close" aria-label="Close profile">×</button></form>
+    <div class="dialog-eyebrow">A LITTLE CONTEXT</div>
+    <h2 id="profile-title">Your health profile</h2>
+    <p class="dialog-description">Optional details help tailor general information. Enable AI sharing only if you want messages and profile context sent to the configured AI provider.</p>
+    <form id="profile-form">
+      <label for="age-range">Age range</label>
+      <select id="age-range"><option value="">Prefer not to say</option><option>Under 18</option><option>18–29</option><option>30–44</option><option>45–59</option><option>60+</option></select>
+      <label for="health-context">Conditions, allergies, or other context</label>
+      <textarea id="health-context" rows="3" maxlength="300" placeholder="For example, asthma or a penicillin allergy"></textarea>
+      <label class="sharing-option" for="share-with-ai"><input id="share-with-ai" type="checkbox"><span><strong>Allow AI responses</strong><small>Your messages and saved profile context may be sent to the configured AI provider. Otherwise, Carepath uses local guidance.</small></span></label>
+      <div class="dialog-actions"><button class="cancel-button" type="button" id="cancel-profile">Cancel</button><button class="save-button" type="submit">Save profile</button></div>
+    </form>
+  </dialog>
+  <dialog class="profile-dialog auth-dialog" id="auth-dialog" aria-labelledby="auth-title">
+    <form method="dialog" class="dialog-close-form"><button class="dialog-close" aria-label="Close account dialog">×</button></form>
+    <div class="dialog-eyebrow">YOUR CAREPATH ACCOUNT</div>
+    <h2 id="auth-title">Create your account</h2>
+    <p class="dialog-description">Your account is secured by this Carepath server. Conversation history and health profile details stay in this browser.</p>
+    <div class="auth-tabs" role="tablist" aria-label="Account action">
+      <button class="auth-tab active" type="button" role="tab" aria-selected="true" data-auth-mode="signup">Sign up</button>
+      <button class="auth-tab" type="button" role="tab" aria-selected="false" data-auth-mode="login">Sign in</button>
+    </div>
+    <form id="auth-form">
+      <div id="auth-name-field">
+        <label for="auth-name">Your name</label>
+        <input id="auth-name" name="name" type="text" autocomplete="name" minlength="2" maxlength="60" required>
+      </div>
+      <label for="auth-email">Email</label>
+      <input id="auth-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+      <label for="auth-password">Password</label>
+      <input id="auth-password" name="password" type="password" autocomplete="new-password" minlength="12" maxlength="128" required>
+      <p class="auth-error" id="auth-error" role="alert" hidden></p>
+      <div class="dialog-actions"><button class="save-button" id="auth-submit" type="submit">Create account</button></div>
+    </form>
+  </dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
