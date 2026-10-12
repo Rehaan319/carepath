@@ -35,9 +35,12 @@ const port = Number(process.env.PORT) || 3000;
 const apiKey = (process.env.OPENAI_API_KEY || '').trim();
 const isGroq = apiKey.startsWith('gsk_');
 const defaultBaseUrl = isGroq ? 'https://api.groq.com/openai/v1' : 'https://api.openai.com/v1';
-const defaultModel = isGroq ? 'llama-3.3-70b-versatile' : 'gpt-4o-mini';
+const defaultModel = isGroq ? 'llama-3.1-8b-instant' : 'gpt-4o-mini';
 const baseUrl = (process.env.OPENAI_BASE_URL || defaultBaseUrl).replace(/\/+$/, '');
-const model = process.env.OPENAI_MODEL || defaultModel;
+let model = process.env.OPENAI_MODEL || defaultModel;
+if (isGroq && (model.startsWith('gpt-') || model.includes('70b'))) {
+  model = 'llama-3.1-8b-instant';
+}
 const accountFile = path.join(root, '.carepath-data', 'accounts.json');
 const rateLimits = new Map();
 const authLimits = new Map();
